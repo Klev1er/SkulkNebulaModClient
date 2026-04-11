@@ -1,0 +1,8 @@
+# Default ignored files
+/run
+/.idea
+/build
+.gradle/loom-cache
+.gradle/vcs-1
+.gradle/buildOutputCleanup
+.gradle/file-system.probe

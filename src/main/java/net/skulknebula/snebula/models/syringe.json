@@ -1,0 +1,127 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "builtin/entity",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        44.6,
+        4.12,
+        -9.66
+      ],
+      "translation": [
+        0,
+        -2.5,
+        -2.5
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        -171.25,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        4,
+        0.5
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        19.5,
+        0,
+        -19.75
+      ],
+      "translation": [
+        -1.75,
+        -2.25,
+        0
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        146.25,
+        0,
+        0
+      ],
+      "translation": [
+        1,
+        4.75,
+        0
+      ]
+    },
+    "ground": {
+      "rotation": [
+        -2.97,
+        3,
+        -90.41
+      ],
+      "translation": [
+        -4.5,
+        0,
+        0
+      ]
+    },
+    "gui": {
+      "rotation": [
+        0,
+        32,
+        -31.5
+      ],
+      "translation": [
+        -4.75,
+        -7.5,
+        0
+      ],
+      "scale": [
+        2.03,
+        2.03,
+        2.03
+      ]
+    },
+    "head": {
+      "rotation": [
+        0,
+        29.75,
+        31.75
+      ],
+      "translation": [
+        -5,
+        6.5,
+        2
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        33.75
+      ],
+      "translation": [
+        4,
+        -5,
+        0
+      ],
+      "scale": [
+        1.51,
+        1.51,
+        1.51
+      ]
+    },
+    "on_shelf": {
+      "translation": [
+        0,
+        -1.25,
+        0
+      ],
+      "scale": [
+        1.9,
+        1.9,
+        1.9
+      ]
+    }
+  },
+  "textures": {
+    "particle": "snebula:item/texture"
+  }
+}

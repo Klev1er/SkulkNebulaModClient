@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "snebula",
+  "version": "${version}",
+  "name": "SkulkNebulaMod - SERVER",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/dcjon/SkulkNebulaMod - SERVER"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/snebula/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "net.skulknebula.snebula.client.SkulkNebulaModClient"
+    ],
+    "main": [
+      "net.skulknebula.snebula.SkulkNebulaMod"
+    ]
+  },
+  "mixins": [
+    "snebula.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
