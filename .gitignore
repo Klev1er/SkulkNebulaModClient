@@ -6,3 +6,4 @@
 .gradle/vcs-1
 .gradle/buildOutputCleanup
 .gradle/file-system.probe
+/src/main/resources/

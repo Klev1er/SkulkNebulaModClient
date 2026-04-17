@@ -1,0 +1,91 @@
+{
+  "block.snebula.server_block": "Сервер РТ",
+  "itemgroup.snebula.snebula_group": "Skulk Nebula",
+  "itemGroup.snebula.main": "SkulkNebula",
+
+  "block.snebula.server": "Сервер",
+  "block.snebula.syringe": "Шприц",
+
+  "item.snebula.processor": "Процессор",
+  "item.snebula.printed_circuit_board": "Печатная плата",
+  "item.snebula.copper_hard_drive": "Медный жесткий диск",
+  "item.snebula.server_casing": "Корпус сервера",
+  "item.snebula.server_upgrade": "Улучшение сервера",
+  "item.snebula.electrician_kit": "Набор электрика",
+
+  "item.snebula.server_upgrade.tier": "§6Уровень: §e%s",
+  "item.snebula.server_upgrade.reduction": "§aСнижение шанса поломки: §e%s%%",
+  "item.snebula.server_upgrade.upgrade_hint": "§7§oМожно улучшить до 3 уровня",
+
+  "item.snebula.electrician_kit.uses": "§bОсталось использований: §f%s§7/§f%s",
+  "item.snebula.electrician_kit.desc1": "§7Используется для ремонта сломанных серверов",
+  "item.snebula.electrician_kit.desc2": "§8§oПКМ по сломанному серверу",
+
+  "tooltip.snebula.server_upgrade.tier": "Уровень: %s",
+  "tooltip.snebula.server_upgrade.break_reduction": "Снижение шанса поломки: %s%%",
+  "tooltip.snebula.server.broken": "§cСЛОМАН",
+  "tooltip.snebula.server.working": "§aРаботает",
+  "tooltip.snebula.server.upgrade_tier": "Уровень улучшения: %s",
+  "tooltip.snebula.server.repair_progress": "Прогресс ремонта: %s%%",
+
+  "message.snebula.server.repair_start": "§7Начат ремонт сервера...",
+  "message.snebula.server.repair_progress": "§7Ремонт: §e%s%%",
+  "message.snebula.server.repair_cancelled": "§cРемонт прерван!",
+  "message.snebula.server.repair_complete": "§a✓ Сервер починен!",
+  "message.snebula.server.repair_kit_used": "§aКомплект использован! §7Прогресс: §e%s%%",
+  "message.snebula.server.repair_kit_instant": "§a✓ Сервер починен комплектом!",
+  "message.snebula.server.already_repairing": "§cСервер уже ремонтирует другой игрок!",
+  "message.snebula.server.broken_warning": "§cСервер сломан! Требуется ремонт.",
+
+  "message.snebula.upgrade.installed": "§a✓ Улучшение уровня %s установлено!%s",
+  "message.snebula.upgrade.already_installed": "§cУлучшение этого уровня или выше уже установлено!",
+  "message.snebula.upgrade.break_reduction": "§7Шанс поломки снижен на %s%%",
+  "message.snebula.upgrade.status_broken": " §7(сломан)",
+
+  "message.snebula.server.break_random": "§cСервер сломался!",
+
+  "death.attack.snebula.syringe": "%s проткнули шприцем",
+  "death.attack.snebula.syringe.player": "%s проткнули шприцем пока сражались с %s",
+
+  "subtitles.snebula.server.break": "Сервер ломается",
+  "subtitles.snebula.server.repair": "Сервер чинится",
+  "subtitles.snebula.server.working": "Сервер работает",
+  "subtitles.snebula.syringe.inject": "Шприц вкалывает",
+
+  "advancement.snebula.root.title": "SkulkNebula",
+  "advancement.snebula.root.description": "§oТёмные секреты серверных...",
+  "advancement.snebula.server_craft.title": "Серверная",
+  "advancement.snebula.server_craft.description": "§oСоздайте свой первый сервер",
+  "advancement.snebula.processor_craft.title": "Мозги",
+  "advancement.snebula.processor_craft.description": "§oСоздайте процессор",
+  "advancement.snebula.server_upgrade.title": "Апгрейд",
+  "advancement.snebula.server_upgrade.description": "§oУлучшите сервер до 2 уровня",
+  "advancement.snebula.server_max_upgrade.title": "Максимальная мощность!",
+  "advancement.snebula.server_max_upgrade.description": "§oУлучшите сервер до максимального 3 уровня",
+  "advancement.snebula.server_break.title": "Крах системы",
+  "advancement.snebula.server_break.description": "§oДопустите поломку сервера",
+  "advancement.snebula.server_repair.title": "Сисадмин",
+  "advancement.snebula.server_repair.description": "§oПочините сломанный сервер",
+
+  "container.snebula.server": "Сервер",
+  "container.snebula.syringe": "Шприц",
+
+  "jei.category.snebula.server_upgrade": "Улучшение сервера",
+  "jei.category.snebula.server_repair": "Ремонт сервера",
+
+  "config.snebula.title": "Настройки SkulkNebula",
+  "config.snebula.server.break_chance": "Базовый шанс поломки сервера",
+  "config.snebula.server.break_interval": "Интервал проверки поломки (тики)",
+  "config.snebula.server.repair_speed": "Скорость ручного ремонта",
+
+  "key.snebula.category": "SkulkNebula",
+  "key.snebula.server_info": "Информация о сервере",
+
+  "commands.snebula.server.list": "Список всех серверов:",
+  "commands.snebula.server.list.empty": "Серверы не найдены",
+  "commands.snebula.server.info": "Информация о сервере на %s, %s, %s",
+  "commands.snebula.server.info.broken": "Состояние: Сломан",
+  "commands.snebula.server.info.working": "Состояние: Работает",
+  "commands.snebula.server.info.upgrade": "Уровень улучшения: %s",
+  "commands.snebula.server.info.repair": "Прогресс ремонта: %s%%"
+}

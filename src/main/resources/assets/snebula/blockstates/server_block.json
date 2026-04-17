@@ -1,0 +1,43 @@
+{
+  "variants": {
+    "facing=north,tier=0,broken=false": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=0,broken=false": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=0,broken=false": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=0,broken=false": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=0,broken=true": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=0,broken=true": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=0,broken=true": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=0,broken=true": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=1,broken=false": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=1,broken=false": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=1,broken=false": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=1,broken=false": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=1,broken=true": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=1,broken=true": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=1,broken=true": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=1,broken=true": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=2,broken=false": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=2,broken=false": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=2,broken=false": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=2,broken=false": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=2,broken=true": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=2,broken=true": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=2,broken=true": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=2,broken=true": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=3,broken=false": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=3,broken=false": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=3,broken=false": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=3,broken=false": { "model": "snebula:block/server_block_entity", "y": 270 },
+
+    "facing=north,tier=3,broken=true": { "model": "snebula:block/server_block_entity" },
+    "facing=east,tier=3,broken=true": { "model": "snebula:block/server_block_entity", "y": 90 },
+    "facing=south,tier=3,broken=true": { "model": "snebula:block/server_block_entity", "y": 180 },
+    "facing=west,tier=3,broken=true": { "model": "snebula:block/server_block_entity", "y": 270 }
+  }
+}

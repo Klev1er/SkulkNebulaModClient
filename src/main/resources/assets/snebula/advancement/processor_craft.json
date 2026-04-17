@@ -1,0 +1,33 @@
+{
+  "parent": "snebula:root",
+  "display": {
+    "icon": {
+      "id": "snebula:processor"
+    },
+    "title": {
+      "translate": "advancement.snebula.processor_craft.title"
+    },
+    "description": {
+      "translate": "advancement.snebula.processor_craft.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "processor": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "snebula:processor"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    ["processor"]
+  ]
+}

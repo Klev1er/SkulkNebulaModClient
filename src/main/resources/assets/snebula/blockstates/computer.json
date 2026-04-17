@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "snebula:block/computer_block_entity"  },
+    "facing=east": { "model": "snebula:block/computer_block_entity","y": 90},
+    "facing=south": { "model": "snebula:block/computer_block_entity", "y": 180 },
+    "facing=west": { "model": "snebula:block/computer_block_entity", "y": 270 }
+  }
+}

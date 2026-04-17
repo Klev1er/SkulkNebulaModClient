@@ -1,0 +1,33 @@
+{
+  "parent": "snebula:root",
+  "display": {
+    "icon": {
+      "id": "snebula:server_block"
+    },
+    "title": {
+      "translate": "advancement.snebula.server_craft.title"
+    },
+    "description": {
+      "translate": "advancement.snebula.server_craft.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "server_block": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "snebula:server_block"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    ["server_block"]
+  ]
+}

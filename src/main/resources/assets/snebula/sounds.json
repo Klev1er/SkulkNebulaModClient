@@ -1,0 +1,39 @@
+{
+  "ambient.server_sound_main": {
+    "sounds": [
+      "snebula:ambient/server_sound_main"
+    ],
+    "subtitle": "subtitle.snebula.server_sound_main"
+  },
+  "ambient.server_disk_working": {
+    "sounds": [
+      "snebula:ambient/server_disk_working"
+    ],
+    "subtitle": "subtitle.snebula.server_disk_working"
+  },
+  "ambient.server_sound_hardwork": {
+    "sounds": [
+      {
+        "name": "snebula:ambient/server_sound_hardwork"
+      }
+    ],
+    "subtitle": "subtitle.snebula.server_sound_hardwork",
+    "attenuation_distance": 8
+  },
+  "ambient.server_sound_broken": {
+    "sounds": [
+      {
+        "name": "snebula:ambient/server_sound_broken"
+      }
+    ],
+    "subtitle": "subtitle.snebula.server_sound_broken"
+  },
+  "ambient.server_sound_broken_2": {
+    "sounds": [
+      {
+        "name": "snebula:ambient/server_sound_broken_2"
+      }
+    ],
+    "subtitle": "subtitle.snebula.server_sound_broken_2"
+  }
+}

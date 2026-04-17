@@ -17,6 +17,9 @@
     ],
     "main": [
       "net.skulknebula.snebula.SkulkNebulaMod"
+    ],
+    "fabric-datagen": [
+      "net.skulknebula.snebula.client.SNDataGenerator"
     ]
   },
   "mixins": [
