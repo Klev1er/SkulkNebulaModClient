@@ -7,3 +7,4 @@
 .gradle/buildOutputCleanup
 .gradle/file-system.probe
 /src/main/resources/
+/src/main/generated/
