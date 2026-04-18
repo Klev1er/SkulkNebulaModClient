@@ -11,6 +11,7 @@ import net.minecraft.util.Identifier;
 import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.ModBlocks;
 import net.skulknebula.snebula.client.SkulkNebulaModClient;
+import net.skulknebula.snebula.item.custom.ServerUpgradeItem;
 
 public class ModItemGroups {
     public static final ItemGroup ML1_GROUP = Registry.register(Registries.ITEM_GROUP,
@@ -20,7 +21,11 @@ public class ModItemGroups {
                     .entries(((displayContext, entries) -> {
                         entries.add(ModBlocks.SERVER_BLOCK);
                         entries.add(ModBlocks.COMPUTER_BLOCK);
-                        entries.add(ModItems.SERVER_UPGRADE);
+
+                        entries.add(ModItems.SERVER_UPGRADE_TIER_1);
+                        entries.add(ModItems.SERVER_UPGRADE_TIER_2);
+                        entries.add(ModItems.SERVER_UPGRADE_TIER_3);
+
                         entries.add(ModItems.PROCESSOR);
                         entries.add(ModItems.PRINTED_CIRCUIT_BOARD);
                         entries.add(ModItems.COPPER_HARD_DRIVE);

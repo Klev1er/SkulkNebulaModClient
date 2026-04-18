@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.skulknebula.snebula.SkulkNebulaMod;
+import net.skulknebula.snebula.signal.ClientDecryptionManager;
 
 public class ModNetworking {
 
@@ -20,24 +21,34 @@ public class ModNetworking {
 
         // Регистрируем обработчик на клиенте (только если мы на клиенте)
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            registerClientReceiver();
+            registerClientReceivers();
         }
     }
 
     @Environment(EnvType.CLIENT)
-    private static void registerClientReceiver() {
-        ClientPlayNetworking.registerGlobalReceiver(BrewingParticlePayload.ID, (payload, context) -> {
+    public static void registerClientReceivers() {
+        ClientPlayNetworking.registerGlobalReceiver(SignalSyncPayload.ID, (payload, context) -> {
+            SkulkNebulaMod.LOGGER.info("CLIENT: Received SignalSyncPayload for signal: {}");
             context.client().execute(() -> {
-                if (context.player() != null) {
-                    BlockPos pos = payload.pos();
-                    context.player().getEntityWorld().addImportantParticleClient(
-                            ParticleTypes.CAMPFIRE_SIGNAL_SMOKE,
-                            pos.getX() + 0.5f,
-                            pos.getY() + 1.0f,
-                            pos.getZ() + 0.5f,
-                            0f, 0.03f, 0f
-                    );
-                }
+                ClientDecryptionManager.getInstance().syncFromServer(payload.signalId(), payload.signal());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(DecryptionProgressPayload.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                ClientDecryptionManager.getInstance().syncProgress(
+                        payload.signalId(),
+                        payload.progress(),
+                        payload.maxProgress(),
+                        payload.imageQuality()
+                );
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(DecryptionHistoryPayload.ID, (payload, context) -> {
+            SkulkNebulaMod.LOGGER.info("CLIENT: Received history payload with {} entries");
+            context.client().execute(() -> {
+                ClientDecryptionManager.getInstance().syncHistory(payload.history());
             });
         });
     }

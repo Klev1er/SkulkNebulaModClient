@@ -13,7 +13,9 @@ import net.skulknebula.snebula.block.custom.ComputerBlockRenderer;
 import net.skulknebula.snebula.block.custom.ServerBlockRenderer;
 import net.skulknebula.snebula.block.custom.screen.ComputerScreen;
 import net.skulknebula.snebula.client.update.UpdateNotifier;
+import net.skulknebula.snebula.item.ModItems;
 import net.skulknebula.snebula.network.ClientNetworking;
+import net.skulknebula.snebula.network.ModNetworking;
 import net.skulknebula.snebula.screen.ModScreenHandlers;
 
 import java.util.logging.Logger;
@@ -28,6 +30,8 @@ public class SkulkNebulaModClient implements ClientModInitializer {
 
         UpdateNotifier.init();
         ClientNetworking.register();
+
+        ModNetworking.register();
 
         //HandledScreens.register(ModScreenHandlers.COMPUTER_SCREEN_HANDLER, ComputerScreen::new);
 

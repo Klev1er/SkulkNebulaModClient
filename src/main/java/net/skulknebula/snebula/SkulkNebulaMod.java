@@ -12,6 +12,7 @@ import net.skulknebula.snebula.item.ModItemGroups;
 import net.skulknebula.snebula.item.ModItems;
 import net.skulknebula.snebula.network.ModNetworking;
 import net.skulknebula.snebula.screen.ModScreenHandlers;
+import net.skulknebula.snebula.signal.DecryptionManager;
 import net.skulknebula.snebula.signal.DecryptionTicker;
 import net.skulknebula.snebula.signal.SignalLoader;
 import net.skulknebula.snebula.sound.ModSounds;
@@ -31,10 +32,10 @@ public class SkulkNebulaMod implements ModInitializer {
         ModSounds.registerSounds();
         ModBlockEntities.register();
         ModItemGroups.registerItemGroups();
-        ModNetworking.register();
         ModScreenHandlers.initialize();
         ModDataComponentTypes.initialize();
         SignalLoader.init();
+        DecryptionManager.init();
         DecryptionTicker.init();
 
         HandledScreens.register(ModScreenHandlers.COMPUTER_SCREEN_HANDLER, ComputerScreen::new);

@@ -3,15 +3,16 @@ package net.skulknebula.snebula.block.custom;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
@@ -23,27 +24,22 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.skulknebula.snebula.block.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
 public class ServerBlock extends BlockWithEntity {
     public static final IntProperty TIER = IntProperty.of("tier", 0, 3);
     public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
-    public static final BooleanProperty BROKEN = BooleanProperty.of("broken"); // НОВЫЙ ФЛАГ
+    public static final BooleanProperty BROKEN = BooleanProperty.of("broken");
 
     public static final MapCodec<ServerBlock> CODEC = createCodec(ServerBlock::new);
-
-    private static final VoxelShape MAIN_SHAPE = VoxelShapes.cuboid(0.0, 0.0, 0.0, 1.0, 2.6, 1.0);
-    private static final VoxelShape NORTH_BUTTON = VoxelShapes.cuboid(0.4, 2.3, 0.0, 0.6, 2.5, 0.2);
-    private static final VoxelShape SOUTH_BUTTON = VoxelShapes.cuboid(0.4, 2.3, 0.8, 0.6, 2.5, 1.0);
-    private static final VoxelShape EAST_BUTTON = VoxelShapes.cuboid(0.8, 2.3, 0.4, 1.0, 2.5, 0.6);
-    private static final VoxelShape WEST_BUTTON = VoxelShapes.cuboid(0.0, 2.3, 0.4, 0.2, 2.5, 0.6);
 
     public ServerBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.getDefaultState()
                 .with(TIER, 0)
                 .with(FACING, Direction.NORTH)
-                .with(BROKEN, false)); // По умолчанию не сломан
+                .with(BROKEN, false));
     }
 
     @Override
@@ -53,12 +49,20 @@ public class ServerBlock extends BlockWithEntity {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(TIER, FACING, BROKEN); // Добавляем BROKEN
+        builder.add(TIER, FACING, BROKEN);
     }
 
     @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
+        World world = ctx.getWorld();
+        BlockPos pos = ctx.getBlockPos();
+
+        if (!world.getBlockState(pos.up()).canReplace(ctx) ||
+                !world.getBlockState(pos.up(2)).canReplace(ctx)) {
+            return null;
+        }
+
         Direction playerFacing = ctx.getHorizontalPlayerFacing();
         Direction blockFacing = playerFacing.rotateYCounterclockwise();
         return this.getDefaultState()
@@ -68,21 +72,74 @@ public class ServerBlock extends BlockWithEntity {
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (world.isClient()) {
-            return ActionResult.SUCCESS;
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        super.onPlaced(world, pos, state, placer, itemStack);
+        if (!world.isClient()) {
+            world.setBlockState(pos.up(), ModBlocks.SERVER_EXTENSION_CENTER_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+            world.setBlockState(pos.up(2), ModBlocks.SERVER_EXTENSION_UP_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
         }
-
-        BlockEntity be = world.getBlockEntity(pos);
-        if (be instanceof ServerBlockEntity server) {
-            return server.onUse(player, player.getActiveHand());
-        }
-
-        return ActionResult.PASS;
     }
 
     @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!world.isClient()) {
+            breakAllThreeBlocks(world, pos, player);
+        }
+        return super.onBreak(world, pos, state, player);
+    }
+
+    private void breakAllThreeBlocks(World world, BlockPos pos, PlayerEntity player) {
+        BlockPos mainPos = findMainBlock(world, pos);
+        if (mainPos == null) {
+            mainPos = pos;
+        }
+
+        world.breakBlock(mainPos, false, player);
+
+        BlockPos centerPos = mainPos.up();
+        if (world.getBlockState(centerPos).isOf(ModBlocks.SERVER_EXTENSION_CENTER_BLOCK)) {
+            world.breakBlock(centerPos, false, player);
+        }
+
+        BlockPos upPos = mainPos.up(2);
+        if (world.getBlockState(upPos).isOf(ModBlocks.SERVER_EXTENSION_UP_BLOCK)) {
+            world.breakBlock(upPos, false, player);
+        }
+    }
+
+    private BlockPos findMainBlock(World world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+
+        if (state.isOf(ModBlocks.SERVER_BLOCK)) {
+            return pos;
+        }
+        if (state.isOf(ModBlocks.SERVER_EXTENSION_CENTER_BLOCK)) {
+            return pos.down();
+        }
+        if (state.isOf(ModBlocks.SERVER_EXTENSION_UP_BLOCK)) {
+            return pos.down(2);
+        }
+        return null;
+    }
+
+    // ПУБЛИЧНЫЙ метод для вызова из расширений
+    public ActionResult handleUse(World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof ServerBlockEntity server) {
+                return server.onUse(player, player.getActiveHand());
+            }
+        }
+        return ActionResult.SUCCESS;
+    }
+
+    @Override
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        return handleUse(world, pos, player, hit);
+    }
+
+    @Override
+    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         BlockEntity be = world.getBlockEntity(pos);
         if (be instanceof ServerBlockEntity serverEntity) {
             ServerBlockEntity.tick(world, pos, state, serverEntity);
@@ -98,6 +155,16 @@ public class ServerBlock extends BlockWithEntity {
     }
 
     @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return VoxelShapes.cuboid(0.0, 0.0, 0.0, 1.0, 2.625, 1.0);
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return VoxelShapes.fullCube();
+    }
+
+    @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.MODEL;
     }
@@ -108,29 +175,13 @@ public class ServerBlock extends BlockWithEntity {
         return new ServerBlockEntity(pos, state);
     }
 
-    private VoxelShape getButtonShape(Direction facing) {
-        return switch (facing) {
-            case NORTH -> NORTH_BUTTON;
-            case SOUTH -> SOUTH_BUTTON;
-            case EAST -> EAST_BUTTON;
-            case WEST -> WEST_BUTTON;
-            default -> NORTH_BUTTON;
-        };
-    }
-
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        Direction facing = state.get(FACING);
-        return VoxelShapes.union(MAIN_SHAPE, getButtonShape(facing));
-    }
-
-    @Override
-    public BlockState rotate(BlockState state, BlockRotation rotation) {
+    protected BlockState rotate(BlockState state, BlockRotation rotation) {
         return state.with(FACING, rotation.rotate(state.get(FACING)));
     }
 
     @Override
-    public BlockState mirror(BlockState state, BlockMirror mirror) {
+    protected BlockState mirror(BlockState state, BlockMirror mirror) {
         return state.rotate(mirror.getRotation(state.get(FACING)));
     }
 }

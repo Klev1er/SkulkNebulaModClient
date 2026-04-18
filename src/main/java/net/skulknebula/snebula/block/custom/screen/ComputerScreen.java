@@ -1,6 +1,5 @@
 package net.skulknebula.snebula.block.custom.screen;
 
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -8,12 +7,14 @@ import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.custom.ServerBlock;
 import net.skulknebula.snebula.block.custom.ServerBlockEntity;
+import net.skulknebula.snebula.signal.ClientDecryptionManager;
 import net.skulknebula.snebula.signal.DecryptionManager;
 import net.skulknebula.snebula.signal.DecryptionTicker;
 import net.skulknebula.snebula.signal.SignalData;
@@ -28,6 +29,8 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
             Identifier.of(SkulkNebulaMod.MOD_ID, "textures/gui/server_gui_online.png");
     private static final Identifier SERVER_OFFLINE_BG =
             Identifier.of(SkulkNebulaMod.MOD_ID, "textures/gui/server_gui_offline.png");
+
+    private ClientDecryptionManager decryptionManager = ClientDecryptionManager.getInstance();
 
     private static final int GUI_WIDTH = 312;
     private static final int GUI_HEIGHT = 256;
@@ -55,12 +58,13 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
     private static final int COLOR_TEXT_GRAY = -5592406;
     private static final int COLOR_TEXT_GRAY_DARK = -11184811;
     private static final int COLOR_TEXT_LIGHT_BLUE = -5592321;
+    private static final int COLOR_TEXT_ORANGE = -29920;
 
     private static final int COLOR_SCROLL_BG = 0x80000000;
     private static final int COLOR_SCROLL_BAR = 0xFFAAAAAA;
     private static final int COLOR_SCROLL_BAR_GREEN = 0xFF00AA00;
 
-    // Список серверов
+    // Список серверов (только для вкладки 0)
     private static final int SERVER_LIST_X = 10;
     private static final int SERVER_LIST_Y = 10;
     private static final int SERVER_LIST_WIDTH = 96;
@@ -78,33 +82,33 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
     private static final int INPUT_HEIGHT = 14;
 
     // Вкладка расшифровки (вкладка 2)
-    private static final int DECRYPT_MAIN_X = 115;
+    private static final int DECRYPT_MAIN_X = 10;
     private static final int DECRYPT_MAIN_Y = 10;
-    private static final int DECRYPT_MAIN_WIDTH = 185;
+    private static final int DECRYPT_MAIN_WIDTH = 290;
     private static final int DECRYPT_MAIN_HEIGHT = 230;
 
-    // Изображение
-    private static final int IMAGE_X = 120;
+    // История сигналов (слева)
+    private static final int HISTORY_X = 15;
+    private static final int HISTORY_Y = 15;
+    private static final int HISTORY_WIDTH = 80;
+    private static final int HISTORY_HEIGHT = 180;
+
+    // Мини-консоль (слева снизу)
+    private static final int MINI_CONSOLE_X = 15;
+    private static final int MINI_CONSOLE_Y = 200;
+    private static final int MINI_CONSOLE_WIDTH = 80;
+    private static final int MINI_CONSOLE_HEIGHT = 12;
+
+    // Изображение (справа сверху)
+    private static final int IMAGE_X = 105;
     private static final int IMAGE_Y = 15;
     private static final int IMAGE_SIZE = 64;
 
-    // Текст сигнала
-    private static final int SIGNAL_TEXT_X = 120;
+    // Текст сигнала (справа под изображением)
+    private static final int SIGNAL_TEXT_X = 105;
     private static final int SIGNAL_TEXT_Y = 85;
-    private static final int SIGNAL_TEXT_WIDTH = 175;
-    private static final int SIGNAL_TEXT_HEIGHT = 80;
-
-    // История сигналов
-    private static final int HISTORY_X = 120;
-    private static final int HISTORY_Y = 170;
-    private static final int HISTORY_WIDTH = 175;
-    private static final int HISTORY_HEIGHT = 65;
-
-    // Мини-консоль для команд
-    private static final int MINI_CONSOLE_X = 120;
-    private static final int MINI_CONSOLE_Y = 240;
-    private static final int MINI_CONSOLE_WIDTH = 150;
-    private static final int MINI_CONSOLE_HEIGHT = 12;
+    private static final int SIGNAL_TEXT_WIDTH = 190;
+    private static final int SIGNAL_TEXT_HEIGHT = 100;
 
     private int serverScrollOffset = 0;
     private int consoleScrollOffset = 0;
@@ -120,8 +124,7 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
     private long lastServerUpdate = 0;
     private static final long SERVER_UPDATE_INTERVAL = 2000;
 
-    // Текущая вкладка
-    private int currentTab = 0; // 0 = консоль, 1 = расшифровка
+    private int currentTab = 0;
 
     public ComputerScreen(ComputerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -166,15 +169,13 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
 
         context.applyBlur();
 
-        drawServerList(context);
-
         if (currentTab == 0) {
+            drawServerList(context);
             drawConsole(context);
             drawInputField(context);
             drawDecryptionProgress(context);
         } else {
-            drawDecryptionPage(context);
-            drawMiniConsole(context);
+            drawDecryptionPage(context, mouseX, mouseY);
         }
     }
 
@@ -278,7 +279,7 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
     }
 
     private void drawDecryptionProgress(DrawContext context) {
-        DecryptionManager dm = DecryptionTicker.DECRYPTION_MANAGER;
+        ClientDecryptionManager dm = ClientDecryptionManager.getInstance();
 
         if (!dm.hasActiveSignal()) {
             return;
@@ -360,20 +361,68 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
         }
     }
 
-    private void drawDecryptionPage(DrawContext context) {
-        DecryptionManager dm = DecryptionTicker.DECRYPTION_MANAGER;
+    private void drawDecryptionPage(DrawContext context, int mouseX, int mouseY) {
+        ClientDecryptionManager dm = ClientDecryptionManager.getInstance();
         int pageX = x + DECRYPT_MAIN_X;
         int pageY = y + DECRYPT_MAIN_Y;
 
+        // Фон страницы
         context.fill(pageX, pageY, pageX + DECRYPT_MAIN_WIDTH, pageY + DECRYPT_MAIN_HEIGHT, COLOR_BG_MEDIUM);
         context.drawStrokedRectangle(pageX, pageY, DECRYPT_MAIN_WIDTH, DECRYPT_MAIN_HEIGHT, COLOR_BORDER_CYAN);
 
-        context.drawText(textRenderer, Text.literal("§b=== SIGNAL DECRYPTION ==="), pageX + 5, pageY + 3, COLOR_TEXT_CYAN, false);
+        // Заголовок
+        context.drawText(textRenderer, Text.literal("§b=== SIGNAL DECRYPTION ==="), pageX + 95, pageY + 3, COLOR_TEXT_CYAN, false);
+
+        // История (слева сверху)
+        int histX = x + HISTORY_X;
+        int histY = y + HISTORY_Y;
+        context.fill(histX, histY + 6, histX + HISTORY_WIDTH + 3, histY + HISTORY_HEIGHT + 3, COLOR_BG_BLUE_DARK);
+        context.drawStrokedRectangle(histX, histY + 6, HISTORY_WIDTH + 3, HISTORY_HEIGHT + 3, COLOR_BORDER_BLUE);
+        context.drawText(textRenderer, Text.literal("§7=== HISTORY ==="), histX - 3, pageY + 3, COLOR_TEXT_GRAY, false);
+
+        List<DecryptionManager.DecryptedSignal> history = dm.getDecryptedHistory();
+        if (!history.isEmpty()) {
+            context.enableScissor(histX + 2, histY + 8, histX + HISTORY_WIDTH + 1, histY + HISTORY_HEIGHT + 6);
+
+            int maxScroll = Math.max(0, history.size() * 24 - HISTORY_HEIGHT + 5);
+            historyScrollOffset = Math.min(historyScrollOffset, maxScroll);
+
+            int startIdx = historyScrollOffset / 24;
+            for (int i = startIdx; i < Math.min(history.size(), startIdx + 8); i++) {
+                DecryptionManager.DecryptedSignal ds = history.get(history.size() - 1 - i);
+                int y = histY + 5 + (i - startIdx) * 24;
+
+                context.drawText(textRenderer, Text.literal("§a✓ " + ds.signal().id()), histX + 5, y, COLOR_TEXT_GREEN, false);
+                String preview = ds.signal().content();
+                if (preview.length() > 12) preview = preview.substring(0, 12) + "...";
+                context.drawText(textRenderer, Text.literal("§7" + preview), histX + 5, y + 11, COLOR_TEXT_GRAY, false);
+            }
+
+            context.disableScissor();
+        }
+
+        // Мини-консоль (слева снизу)
+        int miniX = x + MINI_CONSOLE_X;
+        int miniY = y + MINI_CONSOLE_Y;
+        context.fill(miniX, miniY + 6, miniX + MINI_CONSOLE_WIDTH + 3, miniY + MINI_CONSOLE_HEIGHT + 7, COLOR_BG_MEDIUM);
+        int borderColor = inputFocused ? COLOR_BORDER_CYAN : COLOR_BORDER_BLUE;
+        context.drawStrokedRectangle(miniX, miniY + 6, MINI_CONSOLE_WIDTH + 3, MINI_CONSOLE_HEIGHT + 3, borderColor);
+
+        String displayText = inputText;
+        if (inputFocused && (System.currentTimeMillis() / 500) % 2 == 0) {
+            displayText = displayText + "_";
+        }
+
+        if (!displayText.isEmpty()) {
+            context.drawText(textRenderer, Text.literal(displayText), miniX + 3, miniY + 8, COLOR_TEXT_LIGHT_BLUE, false);
+        } else if (!inputFocused) {
+            context.drawText(textRenderer, Text.literal(">"), miniX + 3, miniY + 8, COLOR_TEXT_BLUE, false);
+        }
 
         if (!dm.hasActiveSignal() && dm.getDecryptedHistory().isEmpty()) {
             String msg = "No signals detected";
             int textWidth = textRenderer.getWidth(msg);
-            context.drawText(textRenderer, Text.literal(msg), pageX + (DECRYPT_MAIN_WIDTH - textWidth) / 2, pageY + DECRYPT_MAIN_HEIGHT / 2, COLOR_TEXT_GRAY, false);
+            context.drawText(textRenderer, Text.literal(msg), pageX + 105 + (190 - textWidth) / 2, pageY + DECRYPT_MAIN_HEIGHT / 2, COLOR_TEXT_GRAY, false);
             return;
         }
 
@@ -383,15 +432,16 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
         }
 
         if (signal != null) {
-            context.drawText(textRenderer, Text.literal("§eSignal: " + signal.id()), pageX + 5, pageY + 15, COLOR_TEXT_YELLOW, false);
+            context.drawText(textRenderer, Text.literal("§eSignal: " + signal.id()), pageX + 105, pageY + 5, COLOR_TEXT_YELLOW, false);
 
+            // Изображение (справа сверху)
             int imgX = x + IMAGE_X;
             int imgY = y + IMAGE_Y;
             context.fill(imgX, imgY, imgX + IMAGE_SIZE, imgY + IMAGE_SIZE, COLOR_BG_BLUE);
             context.drawStrokedRectangle(imgX, imgY, IMAGE_SIZE, IMAGE_SIZE, COLOR_BORDER_BLUE);
 
             if (signal.hasImage()) {
-                drawPixelatedImage(context, signal.imagePath(), imgX, imgY, IMAGE_SIZE, dm.hasActiveSignal() ? dm.getImageQuality() : 100);
+                drawPixelatedImage(context, signal.imagePath(), imgX, imgY + 8, IMAGE_SIZE, dm.hasActiveSignal() ? dm.getImageQuality() : 100);
             } else {
                 String noImgText = "IMAGE";
                 String noImgText2 = "NOT FOUND";
@@ -401,30 +451,51 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
                 context.drawText(textRenderer, Text.literal(noImgText2), imgX + (IMAGE_SIZE - textW2) / 2, imgY + IMAGE_SIZE/2 + 2, COLOR_TEXT_BLUE, false);
             }
 
+            // Текст сигнала (справа под изображением)
             int textX = x + SIGNAL_TEXT_X;
-            int textY = y + SIGNAL_TEXT_Y;
+            int textY = y + SIGNAL_TEXT_Y + 2;
             context.fill(textX, textY, textX + SIGNAL_TEXT_WIDTH, textY + SIGNAL_TEXT_HEIGHT, COLOR_BG_BLUE_DARK);
             context.drawStrokedRectangle(textX, textY, SIGNAL_TEXT_WIDTH, SIGNAL_TEXT_HEIGHT, COLOR_BORDER_BLUE);
 
-            context.enableScissor(textX + 2, textY + 2, textX + SIGNAL_TEXT_WIDTH - 2, textY + SIGNAL_TEXT_HEIGHT - 2);
+            context.enableScissor(textX + 2, textY + 2, textX + SIGNAL_TEXT_WIDTH - 2, textY + SIGNAL_TEXT_HEIGHT);
 
-            String displayText;
+            String displaySignalText;
             if (dm.hasActiveSignal()) {
-                displayText = dm.getMaskedText();
+                displaySignalText = dm.getMaskedText();
             } else {
-                displayText = signal.content();
+                displaySignalText = signal.content();
             }
 
-            List<String> lines = wrapText(displayText, SIGNAL_TEXT_WIDTH - 10);
-            for (int i = 0; i < lines.size(); i++) {
-                context.drawText(textRenderer, Text.literal(lines.get(i)), textX + 5, textY + 5 + i * 11, COLOR_TEXT_GRAY, false);
+            // Рендерим текст с поддержкой hover для битых секторов
+            List<TextSegment> segments = parseMaskedText(displaySignalText, dm);
+            int lineY = textY + 7;
+            int lineX = textX + 5;
+
+            for (TextSegment segment : segments) {
+                if (lineX + segment.width > textX + SIGNAL_TEXT_WIDTH - 5) {
+                    lineX = textX + 5;
+                    lineY += 11;
+                }
+
+                Text textToDraw = Text.literal(segment.text);
+                if (segment.isCorrupted) {
+                    // Добавляем hover текст для битого сектора
+                    textToDraw = textToDraw.copy().setStyle(textToDraw.getStyle()
+                            .withHoverEvent(new HoverEvent.ShowText(
+                                    Text.literal("§c§lБИТЫЙ СЕКТОР\n§7Данные повреждены")
+                            )));
+                }
+
+                context.drawText(textRenderer, textToDraw, lineX, lineY, segment.color, false);
+                lineX += segment.width;
             }
 
             context.disableScissor();
 
+            // Прогресс-бар под текстом
             if (dm.hasActiveSignal()) {
                 int barX = textX;
-                int barY = textY + SIGNAL_TEXT_HEIGHT + 3;
+                int barY = textY + SIGNAL_TEXT_HEIGHT + 5;
                 int barWidth = SIGNAL_TEXT_WIDTH;
                 int barHeight = 6;
 
@@ -434,55 +505,52 @@ public class ComputerScreen extends HandledScreen<ComputerScreenHandler> {
                 context.drawStrokedRectangle(barX, barY, barWidth, barHeight, COLOR_TEXT_GREEN);
             }
         }
+    }
 
-        int histX = x + HISTORY_X;
-        int histY = y + HISTORY_Y;
-        context.fill(histX, histY, histX + HISTORY_WIDTH, histY + HISTORY_HEIGHT, COLOR_BG_BLUE_DARK);
-        context.drawStrokedRectangle(histX, histY, HISTORY_WIDTH, HISTORY_HEIGHT, COLOR_BORDER_BLUE);
-        context.drawText(textRenderer, Text.literal("§7--- HISTORY ---"), histX + 5, histY - 10, COLOR_TEXT_GRAY, false);
+    /**
+     * Парсит маскированный текст на сегменты для рендеринга
+     */
+    private List<TextSegment> parseMaskedText(String text, ClientDecryptionManager dm) {
+        List<TextSegment> segments = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int currentColor = COLOR_TEXT_GRAY;
+        boolean obfuscated = false;
+        boolean isCorrupted = false;
 
-        List<DecryptionManager.DecryptedSignal> history = dm.getDecryptedHistory();
-        if (!history.isEmpty()) {
-            context.enableScissor(histX + 2, histY + 2, histX + HISTORY_WIDTH - 2, histY + HISTORY_HEIGHT - 2);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
 
-            int maxScroll = Math.max(0, history.size() * 24 - HISTORY_HEIGHT + 5);
-            historyScrollOffset = Math.min(historyScrollOffset, maxScroll);
+            if (c == '§' && i + 1 < text.length()) {
+                if (current.length() > 0) {
+                    int color = obfuscated ? COLOR_TEXT_GRAY_DARK : currentColor;
+                    segments.add(new TextSegment(current.toString(), color, textRenderer.getWidth(current.toString()), isCorrupted));
+                    current = new StringBuilder();
+                }
 
-            int startIdx = historyScrollOffset / 24;
-            for (int i = startIdx; i < Math.min(history.size(), startIdx + 3); i++) {
-                DecryptionManager.DecryptedSignal ds = history.get(history.size() - 1 - i);
-                int y = histY + 5 + (i - startIdx) * 24;
-
-                context.drawText(textRenderer, Text.literal("§a✓ " + ds.signal().id()), histX + 5, y, COLOR_TEXT_GREEN, false);
-
-                String preview = ds.signal().content();
-                if (preview.length() > 28) preview = preview.substring(0, 28) + "...";
-                context.drawText(textRenderer, Text.literal("§7" + preview), histX + 5, y + 11, COLOR_TEXT_GRAY, false);
+                char format = text.charAt(i + 1);
+                if (format == 'k') {
+                    obfuscated = true;
+                } else if (format == 'r') {
+                    obfuscated = false;
+                    currentColor = COLOR_TEXT_GRAY;
+                }
+                i++;
+            } else {
+                // Проверяем, является ли символ битым сектором
+                isCorrupted = (c == '■');
+                current.append(c);
             }
-
-            context.disableScissor();
         }
+
+        if (current.length() > 0) {
+            int color = obfuscated ? COLOR_TEXT_GRAY_DARK : currentColor;
+            segments.add(new TextSegment(current.toString(), color, textRenderer.getWidth(current.toString()), isCorrupted));
+        }
+
+        return segments;
     }
 
-    private void drawMiniConsole(DrawContext context) {
-        int consoleX = x + MINI_CONSOLE_X;
-        int consoleY = y + MINI_CONSOLE_Y;
-
-        context.fill(consoleX, consoleY, consoleX + MINI_CONSOLE_WIDTH, consoleY + MINI_CONSOLE_HEIGHT, COLOR_BG_MEDIUM);
-        int borderColor = inputFocused ? COLOR_BORDER_CYAN : COLOR_BORDER_BLUE;
-        context.drawStrokedRectangle(consoleX, consoleY, MINI_CONSOLE_WIDTH, MINI_CONSOLE_HEIGHT, borderColor);
-
-        String displayText = inputText;
-        if (inputFocused && (System.currentTimeMillis() / 500) % 2 == 0) {
-            displayText = displayText + "_";
-        }
-
-        if (!displayText.isEmpty()) {
-            context.drawText(textRenderer, Text.literal(displayText), consoleX + 3, consoleY + 2, 0xFFAAAAFF, false);
-        } else if (!inputFocused) {
-            context.drawText(textRenderer, Text.literal(">"), consoleX + 3, consoleY + 2, COLOR_TEXT_BLUE, false);
-        }
-    }
+    private record TextSegment(String text, int color, int width, boolean isCorrupted) {}
 
     private void drawPixelatedImage(DrawContext context, String path, int x, int y, int size, int quality) {
         int pixels = Math.max(2, (int)(size * quality / 100f));

@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 public class ElectricianKitItem extends Item {
     private static final int MAX_USES = 4;
-    private static final int REPAIR_AMOUNT = 100; // Полный ремонт
 
     public ElectricianKitItem(Settings settings) {
         super(settings);
@@ -45,19 +44,24 @@ public class ElectricianKitItem extends Item {
             return ActionResult.PASS;
         }
 
+        ItemStack stack = player.getStackInHand(hand);
+
         if (!world.isClient()) {
             server.setBroken(false);
-            ItemStack stack = player.getStackInHand(hand);
 
-            int newDamage = stack.getDamage() + 1;
+            int currentDamage = stack.getDamage();
+            int newDamage = currentDamage + 1;
+
             if (newDamage >= MAX_USES) {
-                stack.decrement(1); // ЛОМАЕТСЯ!
+                // Ломаем предмет
+                stack.setCount(0);
                 player.sendMessage(Text.literal("§cНабор электрика сломался!").formatted(Formatting.RED), true);
             } else {
                 stack.setDamage(newDamage);
+                player.sendMessage(Text.literal("§a✓ Сервер починен!").formatted(Formatting.GREEN), true);
             }
-            player.sendMessage(Text.literal("§a✓ Сервер починен!").formatted(Formatting.GREEN), true);
         }
+
         return ActionResult.SUCCESS;
     }
 

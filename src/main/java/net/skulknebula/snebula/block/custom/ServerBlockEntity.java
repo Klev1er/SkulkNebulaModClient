@@ -4,6 +4,7 @@ import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
@@ -21,9 +22,11 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.ModBlockEntities;
 import net.skulknebula.snebula.item.ModItems;
 import net.skulknebula.snebula.item.custom.ServerUpgradeItem;
+import net.skulknebula.snebula.signal.DecryptionManager;
 import net.skulknebula.snebula.sound.ModSounds;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +38,6 @@ import software.bernie.geckolib.animatable.manager.AnimatableManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
@@ -50,15 +52,15 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
     private int upgradeTier = 0;
 
-    // Для ручного ремонта (Shift+ПКМ)
-    private PlayerEntity repairingPlayer = null;
-
     // Флаги для звуков
     private int diskSoundCooldown = 0;
-    private static final int DISK_SOUND_DURATION = 37 * 20; // 37 секунд в тиках
+    private static final int DISK_SOUND_DURATION = 37 * 20;
     private int brokenSoundTimer = 0;
     private int mainSoundTimer = 0;
     private int hardworkSoundTimer = 0;
+
+    // Выбранный звук поломки (фиксируется при поломке)
+    private SoundEvent currentBrokenSound = null;
 
     private static final List<ServerBlockEntity> ALL_SERVERS = new ArrayList<>();
 
@@ -74,30 +76,32 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
         entity.tickCounter++;
 
-        // ========== ЗВУКИ ==========
-
-        // Main sound - всегда играет (каждые 6 секунд)
+        // Main sound
         if (entity.mainSoundTimer <= 0) {
             world.playSound(null, pos, ModSounds.SERVER_SOUND_MAIN, SoundCategory.BLOCKS, 0.5f, 1.0f);
-            entity.mainSoundTimer = 120; // 6 секунд
+            entity.mainSoundTimer = 120;
         } else {
             entity.mainSoundTimer--;
         }
 
-        // Hardwork sound - когда усиленно работает (тикКунтер > 5000 или ремонт)
-        if (!entity.isBroken && (entity.tickCounter > 5000 || entity.repairingPlayer != null)) {
+        // Hardwork sound
+        boolean processingSignal = DecryptionManager.getInstance().hasActiveSignal();
+        if (!entity.isBroken && processingSignal) {
             if (entity.hardworkSoundTimer <= 0) {
                 world.playSound(null, pos, ModSounds.SERVER_SOUND_HARDWORK, SoundCategory.BLOCKS, 0.4f, 1.0f);
-                entity.hardworkSoundTimer = 80; // 4 секунды
+                entity.hardworkSoundTimer = 80;
             } else {
                 entity.hardworkSoundTimer--;
             }
+        } else {
+            entity.hardworkSoundTimer = 0;
         }
 
-        // Звук диска (рандомно, только если не сломан)
+        // Disk sound
         if (!entity.isBroken) {
+            float diskChance = processingSignal ? 0.01f : 0.002f;
             if (entity.diskSoundCooldown <= 0) {
-                if (RANDOM.nextFloat() < 0.005f) { // 0.5% шанс каждый тик
+                if (RANDOM.nextFloat() < diskChance) {
                     world.playSound(null, pos, ModSounds.SERVER_DISK_WORKING, SoundCategory.BLOCKS, 0.6f, 1.0f);
                     entity.diskSoundCooldown = DISK_SOUND_DURATION + RANDOM.nextInt(200);
                 }
@@ -106,94 +110,66 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
             }
         }
 
-        // Звуки поломки (ИЛИ один ИЛИ другой)
-        if (entity.isBroken) {
+        // Broken sound - используем фиксированный звук
+        if (entity.isBroken && entity.currentBrokenSound != null) {
             if (entity.brokenSoundTimer <= 0) {
-                // Выбираем ОДИН из двух звуков
-                SoundEvent brokenSound = RANDOM.nextBoolean() ?
-                        ModSounds.SERVER_SOUND_BROKEN :
-                        ModSounds.SERVER_SOUND_BROKEN_2;
-                world.playSound(null, pos, brokenSound, SoundCategory.BLOCKS, 0.7f, 1.0f);
-                entity.brokenSoundTimer = 160; // 8 секунд
+                world.playSound(null, pos, entity.currentBrokenSound, SoundCategory.BLOCKS, 0.7f, 1.0f);
+                entity.brokenSoundTimer = 160;
             } else {
                 entity.brokenSoundTimer--;
             }
         }
 
-        // ========== ЛОГИКА ПОЛОМКИ ==========
+        // Логика поломки
         if (entity.tickCounter >= 10000) {
             entity.tickCounter = 0;
-
             if (!entity.isBroken) {
                 float breakChance = 0.5f;
                 if (entity.upgradeTier > 0) {
                     breakChance -= ServerUpgradeItem.getBreakReduction(entity.upgradeTier);
                 }
                 breakChance = Math.max(0.01f, breakChance);
-
                 if (RANDOM.nextFloat() < breakChance) {
                     entity.setBroken(true);
                 }
             }
         }
-
-        // Ручной ремонт (Shift+ПКМ)
-        if (entity.repairingPlayer != null) {
-            if (!entity.repairingPlayer.isSneaking() ||
-                    entity.repairingPlayer.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()) > 25) {
-                if (entity.repairProgress > 0) {
-                    entity.repairingPlayer.sendMessage(
-                            Text.literal("§cРемонт прерван!"), true);
-                }
-                entity.repairingPlayer = null;
-                entity.repairProgress = 0;
-            } else {
-                entity.addRepairProgress(2);
-
-                if (entity.repairProgress % 20 == 0 && entity.repairingPlayer != null) {
-                    entity.repairingPlayer.sendMessage(
-                            Text.literal("§7Ремонт: §e" + entity.repairProgress + "%"), true);
-                }
-            }
-            entity.markDirty();
-        }
     }
 
-    // Взаимодействие с сервером
     public ActionResult onUse(PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
+        Item item = stack.getItem();
 
-        // Установка улучшения (можно в любом состоянии)
-        if (stack.isOf(ModItems.SERVER_UPGRADE)) {
+        // Установка улучшения
+        if (item == ModItems.SERVER_UPGRADE_TIER_1 ||
+                item == ModItems.SERVER_UPGRADE_TIER_2 ||
+                item == ModItems.SERVER_UPGRADE_TIER_3) {
             if (installUpgrade(player, stack)) {
                 return ActionResult.SUCCESS;
             }
             return ActionResult.FAIL;
         }
 
-        // Ручной ремонт (Shift+ПКМ пустой рукой)
-        if (player.isSneaking() && stack.isEmpty() && isBroken) {
-            if (world.isClient()) {
-                return ActionResult.SUCCESS;
-            }
-
-            repairingPlayer = player;
-            player.sendMessage(Text.literal("§7Начат ремонт сервера..."), true);
-            return ActionResult.SUCCESS;
-        }
+        // Ручной ремонт УБРАН - только набор электрика!
 
         return ActionResult.PASS;
     }
 
     public boolean installUpgrade(PlayerEntity player, ItemStack upgradeStack) {
-        if (!upgradeStack.isOf(ModItems.SERVER_UPGRADE)) {
-            return false;
-        }
+        Item item = upgradeStack.getItem();
+        int newTier = 0;
 
-        int newTier = ServerUpgradeItem.getTier(upgradeStack);
+        if (item == ModItems.SERVER_UPGRADE_TIER_1) newTier = 1;
+        else if (item == ModItems.SERVER_UPGRADE_TIER_2) newTier = 2;
+        else if (item == ModItems.SERVER_UPGRADE_TIER_3) newTier = 3;
+        else return false;
 
-        if (newTier <= upgradeTier) {
-            player.sendMessage(Text.literal("§cУлучшение этого уровня или выше уже установлено!"), true);
+        if (newTier != upgradeTier + 1) {
+            if (newTier <= upgradeTier) {
+                player.sendMessage(Text.literal("§cУлучшение этого уровня или выше уже установлено!"), true);
+            } else {
+                player.sendMessage(Text.literal("§cНужно сначала установить улучшение уровня " + (upgradeTier + 1) + "!"), true);
+            }
             return false;
         }
 
@@ -206,39 +182,42 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
         }
 
         markDirty();
-
         if (world != null) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
         }
 
         String status = isBroken ? " §7(сломан)" : "";
-        player.sendMessage(Text.literal("§a✓ Улучшение тира " + newTier + " установлено!" + status), true);
+        player.sendMessage(Text.literal("§a✓ Улучшение уровня " + newTier + " установлено!" + status), true);
         player.sendMessage(Text.literal("§7Шанс поломки снижен на " +
                 (int)(ServerUpgradeItem.getBreakReduction(newTier) * 100) + "%"), true);
 
-        if (upgradeTier >= 3) {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                AdvancementEntry advancement = Objects.requireNonNull(serverPlayer.getEntityWorld().getServer())
-                        .getAdvancementLoader()
-                        .get(Identifier.of("snebula", "server_max_upgrade"));
-                if (advancement != null) {
-                    serverPlayer.getAdvancementTracker()
-                            .grantCriterion(advancement, "max_upgrade");
-                }
-            }
-        } else if (upgradeTier >= 2) {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                AdvancementEntry advancement = Objects.requireNonNull(serverPlayer.getEntityWorld().getServer())
-                        .getAdvancementLoader()
-                        .get(Identifier.of("snebula", "server_upgrade"));
-                if (advancement != null) {
-                    serverPlayer.getAdvancementTracker()
-                            .grantCriterion(advancement, "upgrade_tier_2");
-                }
-            }
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            grantAdvancement(serverPlayer, newTier);
         }
 
         return true;
+    }
+
+    private void grantAdvancement(ServerPlayerEntity player, int tier) {
+        Identifier advancementId = null;
+        String criterion = null;
+
+        if (tier == 2) {
+            advancementId = Identifier.of(SkulkNebulaMod.MOD_ID, "server_upgrade");
+            criterion = "upgrade_tier_2";
+        } else if (tier == 3) {
+            advancementId = Identifier.of(SkulkNebulaMod.MOD_ID, "server_max_upgrade");
+            criterion = "max_upgrade";
+        }
+
+        if (advancementId != null) {
+            AdvancementEntry advancement = player.getEntityWorld().getServer()
+                    .getAdvancementLoader()
+                    .get(advancementId);
+            if (advancement != null) {
+                player.getAdvancementTracker().grantCriterion(advancement, criterion);
+            }
+        }
     }
 
     public int getUpgradeTier() {
@@ -250,7 +229,26 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
     }
 
     public void setBroken(boolean broken) {
+        boolean wasBroken = this.isBroken;
         this.isBroken = broken;
+
+        if (wasBroken != broken) {
+            this.brokenSoundTimer = 0;
+            this.hardworkSoundTimer = 0;
+
+            if (broken) {
+                // Выбираем звук поломки ОДИН раз и фиксируем
+                this.currentBrokenSound = RANDOM.nextBoolean() ?
+                        ModSounds.SERVER_SOUND_BROKEN :
+                        ModSounds.SERVER_SOUND_BROKEN_2;
+            } else {
+                this.currentBrokenSound = null;
+            }
+
+            if (world != null && !world.isClient()) {
+                world.playSound(null, pos, ModSounds.SERVER_SOUND_MAIN, SoundCategory.BLOCKS, 0f, 1.0f);
+            }
+        }
 
         if (world != null && !world.isClient()) {
             BlockState currentState = world.getBlockState(pos);
@@ -261,27 +259,37 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
         if (!broken) {
             this.repairProgress = 0;
-            this.repairingPlayer = null;
-            if (!broken && repairingPlayer instanceof ServerPlayerEntity serverPlayer) {
-                AdvancementEntry advancement = serverPlayer.getEntityWorld().getServer()
-                        .getAdvancementLoader()
-                        .get(Identifier.of("snebula", "server_repair"));
-                if (advancement != null) {
-                    serverPlayer.getAdvancementTracker()
-                            .grantCriterion(advancement, "server_repaired");
+            // Достижение за починку
+            if (world != null) {
+                for (PlayerEntity player : world.getPlayers()) {
+                    if (player instanceof ServerPlayerEntity serverPlayer &&
+                            player.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()) < 25) {
+                        AdvancementEntry advancement = serverPlayer.getEntityWorld().getServer()
+                                .getAdvancementLoader()
+                                .get(Identifier.of(SkulkNebulaMod.MOD_ID, "server_repair"));
+                        if (advancement != null) {
+                            serverPlayer.getAdvancementTracker().grantCriterion(advancement, "server_repaired");
+                        }
+                    }
                 }
             }
         } else {
-            if (broken && repairingPlayer instanceof ServerPlayerEntity serverPlayer) {
-                AdvancementEntry advancement = serverPlayer.getEntityWorld().getServer()
-                        .getAdvancementLoader()
-                        .get(Identifier.of("snebula", "server_break"));
-                if (advancement != null) {
-                    serverPlayer.getAdvancementTracker()
-                            .grantCriterion(advancement, "server_broken");
+            // Достижение за поломку
+            if (world != null) {
+                for (PlayerEntity player : world.getPlayers()) {
+                    if (player instanceof ServerPlayerEntity serverPlayer &&
+                            player.squaredDistanceTo(pos.getX(), pos.getY(), pos.getZ()) < 25) {
+                        AdvancementEntry advancement = serverPlayer.getEntityWorld().getServer()
+                                .getAdvancementLoader()
+                                .get(Identifier.of(SkulkNebulaMod.MOD_ID, "server_break"));
+                        if (advancement != null) {
+                            serverPlayer.getAdvancementTracker().grantCriterion(advancement, "server_broken");
+                        }
+                    }
                 }
             }
         }
+
         markDirty();
         if (world != null) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
@@ -290,33 +298,6 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
     public boolean isBroken() {
         return isBroken;
-    }
-
-    public void addRepairProgress(int amount) {
-        if (!isBroken) return;
-
-        repairProgress = Math.min(MAX_REPAIR_PROGRESS, repairProgress + amount);
-
-        if (repairProgress >= MAX_REPAIR_PROGRESS) {
-            setBroken(false);
-            if (repairingPlayer != null) {
-                repairingPlayer.sendMessage(Text.literal("§a✓ Сервер починен!"), true);
-                repairingPlayer = null;
-            }
-        }
-
-        markDirty();
-        if (world != null) {
-            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-        }
-    }
-
-    public int getRepairProgress() {
-        return repairProgress;
-    }
-
-    public float getRepairPercentage() {
-        return repairProgress / (float) MAX_REPAIR_PROGRESS;
     }
 
     public static List<ServerBlockEntity> getAllServers() {
@@ -337,7 +318,6 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
     protected void readData(ReadView view) {
         super.readData(view);
         this.isBroken = view.getBoolean("IsBroken", false);
-        this.repairProgress = view.getInt("RepairProgress", 0);
         this.upgradeTier = view.getInt("UpgradeTier", 0);
     }
 
@@ -345,7 +325,6 @@ public class ServerBlockEntity extends BlockEntity implements GeoBlockEntity {
     protected void writeData(WriteView view) {
         super.writeData(view);
         view.putBoolean("IsBroken", this.isBroken);
-        view.putInt("RepairProgress", this.repairProgress);
         view.putInt("UpgradeTier", this.upgradeTier);
     }
 

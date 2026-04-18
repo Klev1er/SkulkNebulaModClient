@@ -6,30 +6,28 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.skulknebula.snebula.component.ModDataComponentTypes;
-import net.skulknebula.snebula.item.ModItems;
+import net.minecraft.util.Rarity;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class ServerUpgradeItem extends Item {
 
-    public ServerUpgradeItem(Settings settings) {
+    private final int tier;
+
+    public ServerUpgradeItem(Settings settings, int tier) {
         super(settings);
+        this.tier = tier;
     }
 
-    public static int getTier(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponentTypes.UPGRADE_TIER, 1);
+    public int getTier() {
+        return tier;
     }
 
-    public static void setTier(ItemStack stack, int tier) {
-        stack.set(ModDataComponentTypes.UPGRADE_TIER, Math.min(3, Math.max(1, tier)));
-    }
-
-    public static ItemStack create(int tier) {
-        ItemStack stack = new ItemStack(ModItems.SERVER_UPGRADE);
-        setTier(stack, tier);
-        return stack;
+    public static int getTierFromStack(ItemStack stack) {
+        if (stack.getItem() instanceof ServerUpgradeItem upgrade) {
+            return upgrade.getTier();
+        }
+        return 1;
     }
 
     public static float getBreakReduction(int tier) {
@@ -41,11 +39,18 @@ public class ServerUpgradeItem extends Item {
         };
     }
 
+    public ServerUpgradeItem rarity(Rarity rarity) {
+        // В 1.21.1 rarity задаётся через Settings
+        return this;
+    }
+
+    public ServerUpgradeItem maxCount(int maxCount) {
+        // В 1.21.1 maxCount задаётся через Settings
+        return this;
+    }
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
-        int tier = getTier(stack);
-
         textConsumer.accept(Text.translatable("item.snebula.server_upgrade.tier", tier)
                 .formatted(Formatting.GOLD));
 

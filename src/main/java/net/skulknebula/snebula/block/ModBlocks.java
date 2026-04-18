@@ -2,8 +2,6 @@ package net.skulknebula.snebula.block;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.gui.hud.debug.LightLevelsDebugHudEntry;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -14,25 +12,42 @@ import net.minecraft.util.Identifier;
 import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.custom.ComputerBlock;
 import net.skulknebula.snebula.block.custom.ServerBlock;
+import net.skulknebula.snebula.block.custom.ServerExtensionCenterBlock;
+import net.skulknebula.snebula.block.custom.ServerExtensionUpBlock;
 
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
 
 public class ModBlocks {
     public static Block SERVER_BLOCK;
     public static Block COMPUTER_BLOCK;
 
+    public static Block SERVER_EXTENSION_CENTER_BLOCK;
+    public static Block SERVER_EXTENSION_UP_BLOCK;
+
     public static void registerModBlocks() {
         SERVER_BLOCK = registerBlock("server_block",
                 properties -> new ServerBlock(properties
-                        .strength(4.0f)
+                        .strength(24.0f)
                         .requiresTool()
+                        .nonOpaque()
                         .luminance(state -> 2)));
         COMPUTER_BLOCK = registerBlock("computer",
                 properties -> new ComputerBlock(properties
                         .strength(4.0f)
                         .requiresTool()
                         .luminance(state -> 1)));
+        SERVER_EXTENSION_CENTER_BLOCK = registerBlock("server_extension_center",
+                properties -> new ServerExtensionCenterBlock(properties
+                        .strength(24.0f)
+                        .noBlockBreakParticles()
+                        .nonOpaque()
+                        .solid()));
+        SERVER_EXTENSION_UP_BLOCK = registerBlock("server_extension_up",
+                properties -> new ServerExtensionUpBlock(properties
+                        .strength(24.0f)
+                        .noBlockBreakParticles()
+                        .nonOpaque()
+                        .solid()));
 
         SkulkNebulaMod.LOGGER.info("Registering ModBlocks for " + SkulkNebulaMod.MOD_ID);
     }
