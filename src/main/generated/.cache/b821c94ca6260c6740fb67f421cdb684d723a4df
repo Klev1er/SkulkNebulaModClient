@@ -6,7 +6,7 @@ ac0c5ae1fcb86a163869ce3ab0a84a6a21fa9fca assets/snebula/items/computer.json
 af7d0f36fb9f4e4af9af7f3a457d5fa1bd556a4e assets/snebula/items/processor.json
 60c8adb0e9616ebf3d4fb96921f23e4a6b53503c assets/snebula/items/server_block.json
 97c1bb92e708017781f06458dea02528bf38f41d assets/snebula/items/server_casing.json
-da1cc9c438f0d4fb9fac3a553f3014d0c50b48bf assets/snebula/items/server_upgrade.json
+81533589fbba1227b4e31d29101e00374342167e assets/snebula/items/server_upgrade_tier_1.json
 7d318de161b7b929e9052a40772ff602592eebf3 assets/snebula/models/item/computer.json
 3b9891a8d01d884fbd3d9eeb30d8b35c0133146c assets/snebula/models/item/copper_hard_drive.json
 cccd659130e3a06ab949ac4bd3cce40ee88aaa5c assets/snebula/models/item/electrician_kit.json
@@ -14,4 +14,4 @@ cccd659130e3a06ab949ac4bd3cce40ee88aaa5c assets/snebula/models/item/electrician_
 048825adb581143fa2e4d92ec94c01bd6ca7bd79 assets/snebula/models/item/processor.json
 0929f51e72b8f22f5d17474a1b5549a5a35f08e8 assets/snebula/models/item/server_block.json
 79dfac150e8b3f8bf0f512f65db8902c46cf796a assets/snebula/models/item/server_casing.json
-89a3b8d0ca3a1ccc561a7aebbd8775e06ac05400 assets/snebula/models/item/server_upgrade.json
+a8f34243d533e0069f4dca90c8c84344d158ebe0 assets/snebula/models/item/server_upgrade_tier_1.json
