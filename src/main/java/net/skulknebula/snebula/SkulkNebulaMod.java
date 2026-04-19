@@ -2,6 +2,7 @@ package net.skulknebula.snebula;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.skulknebula.snebula.block.ModBlockEntities;
 import net.skulknebula.snebula.block.ModBlocks;
@@ -10,6 +11,7 @@ import net.skulknebula.snebula.command.SignalCommand;
 import net.skulknebula.snebula.component.ModDataComponentTypes;
 import net.skulknebula.snebula.item.ModItemGroups;
 import net.skulknebula.snebula.item.ModItems;
+import net.skulknebula.snebula.network.BrewingParticlePayload;
 import net.skulknebula.snebula.network.ModNetworking;
 import net.skulknebula.snebula.screen.ModScreenHandlers;
 import net.skulknebula.snebula.signal.DecryptionManager;
@@ -38,6 +40,7 @@ public class SkulkNebulaMod implements ModInitializer {
         DecryptionManager.init();
         DecryptionTicker.init();
 
+        ModNetworking.register();
         HandledScreens.register(ModScreenHandlers.COMPUTER_SCREEN_HANDLER, ComputerScreen::new);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

@@ -10,6 +10,7 @@ import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.ModBlockEntities;
 import net.skulknebula.snebula.block.custom.ComputerBlockEntity;
 import net.skulknebula.snebula.block.custom.ComputerBlockRenderer;
+import net.skulknebula.snebula.block.custom.MicroscopeBlockRenderer;
 import net.skulknebula.snebula.block.custom.ServerBlockRenderer;
 import net.skulknebula.snebula.block.custom.screen.ComputerScreen;
 import net.skulknebula.snebula.client.update.UpdateNotifier;
@@ -31,7 +32,7 @@ public class SkulkNebulaModClient implements ClientModInitializer {
         UpdateNotifier.init();
         ClientNetworking.register();
 
-        ModNetworking.register();
+        //ModNetworking.register();
 
         //HandledScreens.register(ModScreenHandlers.COMPUTER_SCREEN_HANDLER, ComputerScreen::new);
 
@@ -43,6 +44,10 @@ public class SkulkNebulaModClient implements ClientModInitializer {
         BlockEntityRendererFactories.register(
                 ModBlockEntities.COMPUTER_BLOCK_ENTITY,
                 (context) -> new ComputerBlockRenderer(ModBlockEntities.COMPUTER_BLOCK_ENTITY)
+        );
+        BlockEntityRendererFactories.register(
+                ModBlockEntities.MICROSCOPE_BLOCK_ENTITY,
+                (context) -> new MicroscopeBlockRenderer(ModBlockEntities.MICROSCOPE_BLOCK_ENTITY)
         );
     }
 }

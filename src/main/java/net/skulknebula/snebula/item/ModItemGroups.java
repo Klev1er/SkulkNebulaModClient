@@ -21,6 +21,7 @@ public class ModItemGroups {
                     .entries(((displayContext, entries) -> {
                         entries.add(ModBlocks.SERVER_BLOCK);
                         entries.add(ModBlocks.COMPUTER_BLOCK);
+                        entries.add(ModBlocks.MICROSCOPE_BLOCK);
 
                         entries.add(ModItems.SERVER_UPGRADE_TIER_1);
                         entries.add(ModItems.SERVER_UPGRADE_TIER_2);

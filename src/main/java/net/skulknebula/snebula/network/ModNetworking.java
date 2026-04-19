@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -16,8 +15,13 @@ import net.skulknebula.snebula.signal.ClientDecryptionManager;
 public class ModNetworking {
 
     public static void register() {
-        // Регистрируем тип пакета для S2C (сервер -> клиент)
+        // РЕГИСТРИРУЕМ "ПАСПОРТА" ДЛЯ ВСЕХ ПАКЕТОВ (S2C: сервер -> клиент)
         PayloadTypeRegistry.playS2C().register(BrewingParticlePayload.ID, BrewingParticlePayload.CODEC);
+
+        // ДОБАВЛЯЕМ РЕГИСТРАЦИЮ ТРЕХ НЕДОСТАЮЩИХ ПАКЕТОВ:
+        PayloadTypeRegistry.playS2C().register(SignalSyncPayload.ID, SignalSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(DecryptionProgressPayload.ID, DecryptionProgressPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(DecryptionHistoryPayload.ID, DecryptionHistoryPayload.CODEC);
 
         // Регистрируем обработчик на клиенте (только если мы на клиенте)
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {

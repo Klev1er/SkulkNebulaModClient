@@ -10,17 +10,14 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.skulknebula.snebula.SkulkNebulaMod;
-import net.skulknebula.snebula.block.custom.ComputerBlock;
-import net.skulknebula.snebula.block.custom.ServerBlock;
-import net.skulknebula.snebula.block.custom.ServerExtensionCenterBlock;
-import net.skulknebula.snebula.block.custom.ServerExtensionUpBlock;
+import net.skulknebula.snebula.block.custom.*;
 
 import java.util.function.Function;
 
 public class ModBlocks {
     public static Block SERVER_BLOCK;
     public static Block COMPUTER_BLOCK;
-
+    public static Block MICROSCOPE_BLOCK;
     public static Block SERVER_EXTENSION_CENTER_BLOCK;
     public static Block SERVER_EXTENSION_UP_BLOCK;
 
@@ -36,6 +33,10 @@ public class ModBlocks {
                         .strength(4.0f)
                         .requiresTool()
                         .luminance(state -> 1)));
+        MICROSCOPE_BLOCK = registerBlock("microscope",
+                properties -> new MicroscopeBlock(properties
+                        .strength(2.0f)
+                        .nonOpaque()));
         SERVER_EXTENSION_CENTER_BLOCK = registerBlock("server_extension_center",
                 properties -> new ServerExtensionCenterBlock(properties
                         .strength(24.0f)

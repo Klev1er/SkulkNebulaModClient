@@ -7,8 +7,9 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.skulknebula.snebula.SkulkNebulaMod;
 import net.skulknebula.snebula.block.custom.ComputerBlockEntity;
-import net.skulknebula.snebula.block.custom.ServerBlock;
 import net.skulknebula.snebula.block.custom.ServerBlockEntity;
+// Добавляем импорт
+import net.skulknebula.snebula.block.custom.MicroscopeBlockEntity;
 
 public class ModBlockEntities {
     public static final BlockEntityType<ServerBlockEntity> SERVER_BLOCK_ENTITY =
@@ -25,7 +26,14 @@ public class ModBlockEntities {
                     FabricBlockEntityTypeBuilder.create(ComputerBlockEntity::new, ModBlocks.COMPUTER_BLOCK).build(null)
             );
 
+    // Добавляем регистрацию микроскопа
+    public static final BlockEntityType<MicroscopeBlockEntity> MICROSCOPE_BLOCK_ENTITY =
+            Registry.register(
+                    Registries.BLOCK_ENTITY_TYPE,
+                    Identifier.of(SkulkNebulaMod.MOD_ID, "microscope_block_entity"),
+                    FabricBlockEntityTypeBuilder.create(MicroscopeBlockEntity::new, ModBlocks.MICROSCOPE_BLOCK).build(null)
+            );
+
     public static void register() {
-        // Вызывается в главном классе мода
     }
 }
